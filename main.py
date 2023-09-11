@@ -1,36 +1,45 @@
 import gpxpy
 import gpxpy.gpx
+from math import radians, cos, sin, asin, sqrt
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance in kilometers between two points
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    # Radius of earth in kilometers. Use 3956 for miles. Determines return value units.
+    r = 6371
+    return c * r
 
 # Parsing an existing file:
 # -------------------------
+
 
 gpx_file = open('test.gpx', 'r')
 
 gpx = gpxpy.parse(gpx_file)
 
+distance = 0
 for track in gpx.tracks:
     for segment in track.segments:
-        for point in segment.points:
-            print('Point at ({0},{1}) -> {2}'.format(point.latitude,
-                  point.longitude, point.elevation))
+        points = segment.points
+        for i in range(0, len(points)):
+            item1 = points[i]
+            if i + 1 < len(points):
+                item2 = points[i + 1]
+                # Do something with item1 and item2
+                hav = haversine(item1.longitude, item1.latitude,
+                                item2.longitude, item2.latitude)
+                # print(hav)
+                distance += hav
 
-for waypoint in gpx.waypoints:
-    print('waypoint {0} -> ({1},{2})'.format(waypoint.name,
-          waypoint.latitude, waypoint.longitude))
-
-for route in gpx.routes:
-    print('Route:')
-    for point in route.points:
-        print('Point at ({0},{1}) -> {2}'.format(point.latitude,
-              point.longitude, point.elevation))
-
-# There are many more utility methods and functions:
-# You can manipulate/add/remove tracks, segments, points, waypoints and routes and
-# get the GPX XML file from the resulting object:
-
-# print('GPX:', gpx.to_xml())
-
-# Creating a new file:
-# --------------------
-
-# gpx = gpxpy.gpx.GPX()
+print("Distance: {distance}".format(distance=distance))
