@@ -47,5 +47,5 @@ for track in gpx.tracks:
                     elevation += elevation_difference
 
 
-print("Distance: {distance}".format(distance=distance))
-print("Elevation: {elevation}".format(elevation=elevation))
+print("Distance: {distance}km".format(distance=round(distance, 2)))
+print("Elevation: {elevation}m".format(elevation=round(elevation, 2)))
