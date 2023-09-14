@@ -1,6 +1,7 @@
 import gpxpy
 import gpxpy.gpx
 from math import radians, cos, sin, asin, sqrt
+import sys
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -25,11 +26,19 @@ def haversine(lon1, lat1, lon2, lat2):
 
 
 gpx_file = open('test.gpx', 'r')
-
 gpx = gpxpy.parse(gpx_file)
+
+distance_to_check = sys.argv[1]
+
+distance_elevation_list = [{'Distance': 0, 'Elevation': 0}]
 
 distance = 0
 elevation = 0
+
+closest_difference = float("inf")
+closest_distance = 0
+final_elevation = 0
+
 for track in gpx.tracks:
     for segment in track.segments:
         points = segment.points
@@ -42,10 +51,27 @@ for track in gpx.tracks:
                                 item2.longitude, item2.latitude)
                 # print(hav)
                 distance += hav
+
                 elevation_difference = item2.elevation - item1.elevation
+
                 if elevation_difference > 0:
                     elevation += elevation_difference
 
+                distance_elevation_list.append(
+                    {'Distance': distance, 'Elevation': elevation})
 
-print("Distance: {distance}km".format(distance=round(distance, 2)))
-print("Elevation: {elevation}m".format(elevation=round(elevation, 2)))
+                current_differnece = abs(distance - float(distance_to_check))
+                if current_differnece < closest_difference:
+                    closest_difference = current_differnece
+                    closest_distance = distance
+                    final_elevation = elevation
+
+
+# print(distance_elevation_list)
+print("Elevation gain at {closest_distance}km is {final_elevation}m".format(
+    closest_distance=round(closest_distance, 2), final_elevation=round(final_elevation, 2)))
+# print("Closest elevation: {final_elevation}m".format(
+#     final_elevation=round(final_elevation, 2)))
+
+print("Total Distance: {distance}km".format(distance=round(distance, 2)))
+print("Total Elevation Gain: {elevation}m".format(elevation=round(elevation, 2)))
