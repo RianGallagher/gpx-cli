@@ -29,6 +29,7 @@ gpx_file = open('test.gpx', 'r')
 gpx = gpxpy.parse(gpx_file)
 
 distance = 0
+elevation = 0
 for track in gpx.tracks:
     for segment in track.segments:
         points = segment.points
@@ -41,5 +42,10 @@ for track in gpx.tracks:
                                 item2.longitude, item2.latitude)
                 # print(hav)
                 distance += hav
+                elevation_difference = item2.elevation - item1.elevation
+                if elevation_difference > 0:
+                    elevation += elevation_difference
+
 
 print("Distance: {distance}".format(distance=distance))
+print("Elevation: {elevation}".format(elevation=elevation))
