@@ -33,8 +33,7 @@ bearer_token = os.environ.get('STRAVA_TOKEN')
 
 
 def request_gpx(route_id):
-    url = "https://www.strava.com/api/v3/routes/{route_id}/export_gpx".format(
-        route_id=route_id)
+    url = f"https://www.strava.com/api/v3/routes/{route_id}/export_gpx"
     headers = {
         'Authorization': f'Bearer {bearer_token}'
     }
