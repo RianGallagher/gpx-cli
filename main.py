@@ -2,6 +2,10 @@ import gpxpy
 import gpxpy.gpx
 from math import radians, cos, sin, asin, sqrt
 import sys
+import requests
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -25,10 +29,25 @@ def haversine(lon1, lat1, lon2, lat2):
 # -------------------------
 
 
-gpx_file = open('test.gpx', 'r')
+bearer_token = os.environ.get('STRAVA_TOKEN')
+
+
+def request_gpx(route_id):
+    url = "https://www.strava.com/api/v3/routes/{route_id}/export_gpx".format(
+        route_id=route_id)
+    headers = {
+        'Authorization': f'Bearer {bearer_token}'
+    }
+    response = requests.request("GET", url, headers=headers)
+    return response.text
+
+
+route_id = sys.argv[1]
+distance_to_check = sys.argv[2]
+
+gpx_file = request_gpx(route_id)
 gpx = gpxpy.parse(gpx_file)
 
-distance_to_check = sys.argv[1]
 
 distance_elevation_list = [{'Distance': 0, 'Elevation': 0}]
 
@@ -74,4 +93,5 @@ print("Elevation gain at {closest_distance}km is {final_elevation}m".format(
 #     final_elevation=round(final_elevation, 2)))
 
 print("Total Distance: {distance}km".format(distance=round(distance, 2)))
-print("Total Elevation Gain: {elevation}m".format(elevation=round(elevation, 2)))
+print("Total Elevation Gain: {elevation}m".format(
+    elevation=round(elevation, 2)))
