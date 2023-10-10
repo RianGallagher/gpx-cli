@@ -5,6 +5,8 @@ import sys
 import requests
 import os
 from dotenv import load_dotenv
+import inquirer
+
 load_dotenv()
 
 
@@ -24,9 +26,6 @@ def haversine(lon1, lat1, lon2, lat2):
     # Radius of earth in kilometers. Use 3956 for miles. Determines return value units.
     r = 6371
     return c * r
-
-# Parsing an existing file:
-# -------------------------
 
 
 bearer_token = os.environ.get('STRAVA_TOKEN')
@@ -48,7 +47,7 @@ gpx_file = request_gpx(route_id)
 gpx = gpxpy.parse(gpx_file)
 
 
-distance_elevation_list = [{'Distance': 0, 'Elevation': 0}]
+distance_elevation_list = [{'Distance': 0.0, 'Elevation': 0.0}]
 
 distance = 0
 elevation = 0
@@ -85,12 +84,46 @@ for track in gpx.tracks:
                     final_elevation = elevation
 
 
-# print(distance_elevation_list)
-print("Elevation gain at {closest_distance}km is {final_elevation}m".format(
-    closest_distance=round(closest_distance, 2), final_elevation=round(final_elevation, 2)))
-# print("Closest elevation: {final_elevation}m".format(
-#     final_elevation=round(final_elevation, 2)))
+# A binary search to find the entry that has the distance closest to the distance entered.
+def find_closest_entry(list: list[dict[str, float]], search_item: float):
+    found = False
+    search_list = list
+
+    while found is False:
+        middle = round(len(search_list) / 2)
+        if (search_list[middle] == search_item or len(search_list) == 1):
+            found = True
+            break
+
+        if (len(search_list) == 2):
+            if (abs(search_list[0]["Distance"] - search_item) < abs(search_list[1]["Distance"] - search_item)):
+                search_list = search_list[:1]
+            else:
+                search_list = search_list[1:]
+            break
+
+        if (search_list[middle]["Distance"] > search_item):
+            search_list = search_list[:middle]
+        else:
+            search_list = search_list[middle:]
+
+    return search_list[0]
+
 
 print("Total Distance: {distance}km".format(distance=round(distance, 2)))
 print("Total Elevation Gain: {elevation}m".format(
     elevation=round(elevation, 2)))
+
+should_break = False
+while not should_break:
+    distance_question = inquirer.Text('distance', message="Distance"),
+    distance = inquirer.prompt(distance_question)
+
+    if distance["distance"] == "stop":
+        should_break = True
+        break
+
+    closest_entry = find_closest_entry(
+        distance_elevation_list, float(distance["distance"]))
+    print("Elevation gain at {closest_distance}km is {final_elevation}m".format(
+        closest_distance=round(closest_entry["Distance"], 2), final_elevation=round(closest_entry["Elevation"], 2)))
